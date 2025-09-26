@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Progress } from "@/components/ui/progress"
-import { CheckCircle, ArrowLeft, ArrowRight, FileText, Upload } from "lucide-react"
+import { CheckCircle, ArrowLeft, ArrowRight } from "lucide-react"
 import { toast } from "sonner"
 import { coerceNumberOrFail, isPositiveNumber } from "@/lib/utils"
 
@@ -377,24 +377,6 @@ export default function NewApplication() {
                         </FormItem>
                       )}
                     />
-
-                    <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-                      <div className="flex items-start space-x-3">
-                        <FileText className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
-                        <div>
-                          <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">Required Documents</h4>
-                          <p className="text-sm text-blue-800 dark:text-blue-200 mb-3">
-                            After submission, you will need to upload the following documents:
-                          </p>
-                          <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
-                            <li>• Building plans and specifications</li>
-                            <li>• Site plan showing property boundaries</li>
-                            <li>• Structural engineering drawings (if applicable)</li>
-                            <li>• Contractor license verification (if applicable)</li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 )}
 
@@ -435,17 +417,17 @@ export default function NewApplication() {
                       </div>
                     </div>
 
-                    <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg">
+                    <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
                       <div className="flex items-start space-x-3">
-                        <Upload className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
+                        <CheckCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
                         <div>
-                          <h4 className="font-medium text-yellow-900 dark:text-yellow-100 mb-2">
+                          <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
                             PA Building Code Compliance
                           </h4>
-                          <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                          <p className="text-sm text-blue-800 dark:text-blue-200">
                             By submitting this application, you acknowledge that all work must comply with Pennsylvania
-                            building codes and regulations. You will receive document upload instructions after
-                            submission.
+                            building codes and regulations. Your application will be reviewed by the appropriate
+                            authorities.
                           </p>
                         </div>
                       </div>
@@ -477,7 +459,7 @@ export default function NewApplication() {
                       className="flex items-center space-x-2 bg-green-600 hover:bg-green-700"
                       disabled={!form.formState.isValid}
                     >
-                      <FileText className="w-4 h-4" />
+                      <CheckCircle className="w-4 h-4" />
                       <span>Submit Application</span>
                     </Button>
                   )}
