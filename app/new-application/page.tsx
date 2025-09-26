@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Progress } from "@/components/ui/progress"
-import { CheckCircle, ArrowLeft, ArrowRight } from "lucide-react"
+import { CheckCircle, ArrowLeft, ArrowRight, FileText, Home } from "lucide-react"
 import { toast } from "sonner"
 import { coerceNumberOrFail, isPositiveNumber } from "@/lib/utils"
 
@@ -80,6 +80,8 @@ const FORM_STEPS = [
 export default function NewApplication() {
   const [currentStep, setCurrentStep] = useState(1)
   const [isClient, setIsClient] = useState(false)
+  const [isSubmitted, setIsSubmitted] = useState(false)
+  const [applicationId, setApplicationId] = useState("")
 
   const form = useForm<BuildingPermitForm>({
     resolver: zodResolver(buildingPermitSchema),
@@ -97,7 +99,6 @@ export default function NewApplication() {
   useEffect(() => {
     setIsClient(true)
 
-    // Load saved data from localStorage
     if (typeof window !== "undefined") {
       const savedData = localStorage.getItem("buildingPermitDraft")
       if (savedData) {
@@ -163,30 +164,34 @@ export default function NewApplication() {
       return
     }
 
-    // Generate application ID
-    const applicationId = `PA-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
-    console.log("[v0] Generated application ID:", applicationId)
+    const generatedId = `PA-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
+    console.log("[v0] Generated application ID:", generatedId)
 
-    // Save to localStorage for tracking
     const applicationData = {
       ...data,
-      applicationId,
+      applicationId: generatedId,
       submittedAt: new Date().toISOString(),
       status: "Submitted",
     }
 
     if (typeof window !== "undefined") {
-      localStorage.setItem(`application_${applicationId}`, JSON.stringify(applicationData))
-      localStorage.removeItem("buildingPermitDraft") // Clear draft
+      localStorage.setItem(`application_${generatedId}`, JSON.stringify(applicationData))
+      localStorage.removeItem("buildingPermitDraft")
       console.log("[v0] Application saved to localStorage")
     }
 
-    toast.success(`Application submitted successfully! Your application ID is: ${applicationId}`)
+    setApplicationId(generatedId)
+    setIsSubmitted(true)
+    toast.success("Application submitted successfully!")
 
-    // Reset form
+    console.log("[v0] Application submitted successfully")
+  }
+
+  const startNewApplication = () => {
+    setIsSubmitted(false)
+    setApplicationId("")
     form.reset()
     setCurrentStep(1)
-    console.log("[v0] Form reset and step returned to 1")
   }
 
   const progress = (currentStep / FORM_STEPS.length) * 100
@@ -204,10 +209,98 @@ export default function NewApplication() {
     )
   }
 
+  if (isSubmitted && applicationId) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-8">
+            <div className="mx-auto w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mb-6">
+              <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+              Application Submitted Successfully!
+            </h1>
+            <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">
+              Your building permit application has been received and is now under review.
+            </p>
+          </div>
+
+          <Card className="bg-white dark:bg-gray-800 shadow-lg mb-8">
+            <CardHeader className="text-center">
+              <CardTitle className="text-2xl text-gray-900 dark:text-white">Application Details</CardTitle>
+              <CardDescription className="text-gray-600 dark:text-gray-300">
+                Please save this information for your records
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-lg text-center">
+                <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">Your Application Number</h3>
+                <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2 font-mono">
+                  {applicationId}
+                </div>
+                <p className="text-sm text-blue-800 dark:text-blue-200">
+                  Use this number to track your application status
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
+                  <span className="font-medium text-gray-700 dark:text-gray-300">Submission Date:</span>
+                  <p className="text-gray-900 dark:text-white">
+                    {new Date().toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
+                </div>
+                <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
+                  <span className="font-medium text-gray-700 dark:text-gray-300">Status:</span>
+                  <p className="text-green-600 dark:text-green-400 font-semibold">Submitted</p>
+                </div>
+              </div>
+
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg">
+                <div className="flex items-start space-x-3">
+                  <FileText className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
+                  <div>
+                    <h4 className="font-medium text-yellow-900 dark:text-yellow-100 mb-2">What Happens Next?</h4>
+                    <ul className="text-sm text-yellow-800 dark:text-yellow-200 space-y-1">
+                      <li>• Your application will be reviewed by the Pennsylvania building department</li>
+                      <li>• You will receive updates via the contact information provided</li>
+                      <li>• Review process typically takes 5-10 business days</li>
+                      <li>• You can track your application status using the application number above</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button
+              onClick={startNewApplication}
+              variant="outline"
+              className="flex items-center space-x-2 bg-transparent"
+            >
+              <FileText className="w-4 h-4" />
+              <span>Submit Another Application</span>
+            </Button>
+            <Button onClick={() => (window.location.href = "/")} className="flex items-center space-x-2">
+              <Home className="w-4 h-4" />
+              <span>Return to Home</span>
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
             Building Permit Application - Pennsylvania
@@ -216,7 +309,6 @@ export default function NewApplication() {
             Submit your building permit application for review and approval
           </p>
 
-          {/* Progress Bar */}
           <div className="mb-8">
             <div className="flex justify-between items-center mb-2">
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -229,7 +321,6 @@ export default function NewApplication() {
             <Progress value={progress} className="h-2" />
           </div>
 
-          {/* Step Indicators */}
           <div className="flex justify-center space-x-4 mb-8">
             {FORM_STEPS.map((step) => (
               <div
@@ -253,7 +344,6 @@ export default function NewApplication() {
           </div>
         </div>
 
-        {/* Form */}
         <Card className="bg-white dark:bg-gray-800 shadow-lg">
           <CardHeader>
             <CardTitle className="text-xl text-gray-900 dark:text-white">{FORM_STEPS[currentStep - 1].title}</CardTitle>
@@ -264,7 +354,6 @@ export default function NewApplication() {
           <CardContent>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                {/* Step 1: Applicant Information */}
                 {currentStep === 1 && (
                   <div className="space-y-6">
                     <FormField
@@ -286,7 +375,6 @@ export default function NewApplication() {
                   </div>
                 )}
 
-                {/* Step 2: Property & Project */}
                 {currentStep === 2 && (
                   <div className="space-y-6">
                     <FormField
@@ -357,7 +445,6 @@ export default function NewApplication() {
                   </div>
                 )}
 
-                {/* Step 3: Cost & Contractor */}
                 {currentStep === 3 && (
                   <div className="space-y-6">
                     <FormField
@@ -396,7 +483,6 @@ export default function NewApplication() {
                   </div>
                 )}
 
-                {/* Step 4: Review & Submit */}
                 {currentStep === 4 && (
                   <div className="space-y-6">
                     <div className="bg-gray-50 dark:bg-gray-900 p-6 rounded-lg">
@@ -451,7 +537,6 @@ export default function NewApplication() {
                   </div>
                 )}
 
-                {/* Navigation Buttons */}
                 <div className="flex justify-between pt-6 border-t border-gray-200 dark:border-gray-700">
                   <Button
                     type="button"
@@ -475,7 +560,6 @@ export default function NewApplication() {
                       className="flex items-center space-x-2 bg-green-600 hover:bg-green-700"
                       onClick={async () => {
                         console.log("[v0] Submit button clicked")
-                        // Trigger validation for all fields before submission
                         const isValid = await form.trigger()
                         console.log("[v0] Full form validation result:", isValid)
                         if (isValid) {
