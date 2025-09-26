@@ -148,10 +148,24 @@ export default function NewApplication() {
   }
 
   const onSubmit = (data: BuildingPermitForm) => {
-    if (!isClient) return
+    console.log("[v0] Form submission started", data)
+
+    if (!isClient) {
+      console.log("[v0] Client not ready, aborting submission")
+      return
+    }
+
+    const isFormValid = form.formState.isValid
+    console.log("[v0] Form validation state:", { isFormValid, errors: form.formState.errors })
+
+    if (!isFormValid) {
+      toast.error("Please fix all validation errors before submitting")
+      return
+    }
 
     // Generate application ID
     const applicationId = `PA-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
+    console.log("[v0] Generated application ID:", applicationId)
 
     // Save to localStorage for tracking
     const applicationData = {
@@ -164,6 +178,7 @@ export default function NewApplication() {
     if (typeof window !== "undefined") {
       localStorage.setItem(`application_${applicationId}`, JSON.stringify(applicationData))
       localStorage.removeItem("buildingPermitDraft") // Clear draft
+      console.log("[v0] Application saved to localStorage")
     }
 
     toast.success(`Application submitted successfully! Your application ID is: ${applicationId}`)
@@ -171,6 +186,7 @@ export default function NewApplication() {
     // Reset form
     form.reset()
     setCurrentStep(1)
+    console.log("[v0] Form reset and step returned to 1")
   }
 
   const progress = (currentStep / FORM_STEPS.length) * 100
@@ -455,9 +471,21 @@ export default function NewApplication() {
                     </Button>
                   ) : (
                     <Button
-                      type="submit"
+                      type="button"
                       className="flex items-center space-x-2 bg-green-600 hover:bg-green-700"
-                      disabled={!form.formState.isValid}
+                      onClick={async () => {
+                        console.log("[v0] Submit button clicked")
+                        // Trigger validation for all fields before submission
+                        const isValid = await form.trigger()
+                        console.log("[v0] Full form validation result:", isValid)
+                        if (isValid) {
+                          console.log("[v0] Form is valid, proceeding with submission")
+                          form.handleSubmit(onSubmit)()
+                        } else {
+                          console.log("[v0] Form validation failed:", form.formState.errors)
+                          toast.error("Please fix all validation errors before submitting")
+                        }
+                      }}
                     >
                       <CheckCircle className="w-4 h-4" />
                       <span>Submit Application</span>
