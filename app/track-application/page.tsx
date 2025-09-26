@@ -1,101 +1,112 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
-import { Badge } from "../../components/ui/badge";
-import { Search, Calendar, CheckCircle, Clock, XCircle } from "lucide-react";
+import type React from "react"
+
+import { useState } from "react"
+import { Button } from "../../components/ui/button"
+import { Input } from "../../components/ui/input"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card"
+import { Badge } from "../../components/ui/badge"
+import { Search, Calendar, CheckCircle, Clock, XCircle } from "lucide-react"
 
 interface Application {
-  id: string;
-  status: "pending" | "in_progress" | "completed" | "rejected";
-  createdTime: string;
-  title: string;
-  description?: string;
+  id: string
+  status: "pending" | "in_progress" | "completed" | "rejected"
+  createdTime: string
+  title: string
+  description?: string
 }
 
 export default function TrackApplication() {
-  const [applicationId, setApplicationId] = useState("");
-  const [application, setApplication] = useState<Application | null>(null);
-  const [isSearched, setIsSearched] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [applicationId, setApplicationId] = useState("")
+  const [application, setApplication] = useState<Application | null>(null)
+  const [isSearched, setIsSearched] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case "pending":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+        return "bg-yellow-100 text-yellow-800 border-yellow-200"
       case "in_progress":
-        return "bg-blue-100 text-blue-800 border-blue-200";
+        return "bg-blue-100 text-blue-800 border-blue-200"
       case "completed":
-        return "bg-green-100 text-green-800 border-green-200";
+        return "bg-green-100 text-green-800 border-green-200"
       case "rejected":
-        return "bg-red-100 text-red-800 border-red-200";
+        return "bg-red-100 text-red-800 border-red-200"
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
+        return "bg-gray-100 text-gray-800 border-gray-200"
     }
-  };
+  }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "pending":
-        return <Clock className="w-4 h-4" />;
+        return <Clock className="w-4 h-4" />
       case "in_progress":
-        return <Clock className="w-4 h-4" />;
+        return <Clock className="w-4 h-4" />
       case "completed":
-        return <CheckCircle className="w-4 h-4" />;
+        return <CheckCircle className="w-4 h-4" />
       case "rejected":
-        return <XCircle className="w-4 h-4" />;
+        return <XCircle className="w-4 h-4" />
       default:
-        return <Clock className="w-4 h-4" />;
+        return <Clock className="w-4 h-4" />
     }
-  };
+  }
 
   const formatDate = (dateString: string) => {
     try {
-      const date = new Date(dateString);
+      const date = new Date(dateString)
       return date.toLocaleDateString("en-US", {
         year: "numeric",
         month: "long",
         day: "numeric",
         hour: "2-digit",
         minute: "2-digit",
-      });
+      })
     } catch {
-      return "Invalid date";
+      return "Invalid date"
     }
-  };
+  }
 
   const searchApplication = () => {
-    if (!applicationId.trim()) return;
+    if (!applicationId.trim()) return
 
-    setIsLoading(true);
-    setIsSearched(true);
+    setIsLoading(true)
+    setIsSearched(true)
 
     // Simulate API call delay
     setTimeout(() => {
       try {
-        const storedApplications = localStorage.getItem("quantum_applications");
-        if (storedApplications) {
-          const applications: Application[] = JSON.parse(storedApplications);
-          const foundApplication = applications.find(app => app.id === applicationId.trim());
-          setApplication(foundApplication || null);
+        const storedApplication = localStorage.getItem(`application_${applicationId.trim()}`)
+        if (storedApplication) {
+          const applicationData = JSON.parse(storedApplication)
+          // Convert the stored format to the expected Application interface
+          const foundApplication: Application = {
+            id: applicationData.applicationId,
+            status: "pending", // Default status since we don't track status changes yet
+            createdTime: applicationData.submittedAt,
+            title: `${applicationData.projectType} - ${applicationData.propertyAddress}`,
+            description: applicationData.projectDescription,
+          }
+          setApplication(foundApplication)
+          console.log("[v0] Application found:", foundApplication)
         } else {
-          setApplication(null);
+          console.log("[v0] No application found with ID:", applicationId.trim())
+          setApplication(null)
         }
       } catch (error) {
-        console.error("Error reading from localStorage:", error);
-        setApplication(null);
+        console.error("[v0] Error reading from localStorage:", error)
+        setApplication(null)
       }
-      setIsLoading(false);
-    }, 500);
-  };
+      setIsLoading(false)
+    }, 500)
+  }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
-      searchApplication();
+      searchApplication()
     }
-  };
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12">
@@ -105,9 +116,7 @@ export default function TrackApplication() {
           <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
             <Search className="w-8 h-8 text-blue-600 dark:text-blue-400" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-            Track Your Application
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Track Your Application</h1>
           <p className="text-lg text-gray-600 dark:text-gray-300">
             Enter your application ID to check the current status and details of your submission.
           </p>
@@ -116,9 +125,7 @@ export default function TrackApplication() {
         {/* Search Section */}
         <Card className="mb-8 shadow-lg border-0 bg-white dark:bg-gray-800">
           <CardHeader className="text-center pb-4">
-            <CardTitle className="text-xl text-gray-900 dark:text-white">
-              Find Your Application
-            </CardTitle>
+            <CardTitle className="text-xl text-gray-900 dark:text-white">Find Your Application</CardTitle>
             <CardDescription className="text-gray-600 dark:text-gray-300">
               Enter your unique application ID below
             </CardDescription>
@@ -135,7 +142,7 @@ export default function TrackApplication() {
                 disabled={isLoading}
               />
             </div>
-            <Button 
+            <Button
               onClick={searchApplication}
               disabled={isLoading || !applicationId.trim()}
               className="w-full py-3 text-lg"
@@ -209,7 +216,9 @@ export default function TrackApplication() {
                         <div className="flex items-center gap-3 text-sm">
                           <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                           <span className="text-gray-600 dark:text-gray-300">Application submitted</span>
-                          <span className="text-gray-400 dark:text-gray-500">({formatDate(application.createdTime)})</span>
+                          <span className="text-gray-400 dark:text-gray-500">
+                            ({formatDate(application.createdTime)})
+                          </span>
                         </div>
                         {application.status !== "pending" && (
                           <div className="flex items-center gap-3 text-sm">
@@ -238,9 +247,7 @@ export default function TrackApplication() {
                   <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Search className="w-8 h-8 text-gray-400 dark:text-gray-500" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                    Application Not Found
-                  </h3>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Application Not Found</h3>
                   <p className="text-gray-600 dark:text-gray-300 mb-4">
                     We couldn't find an application with the ID "{applicationId}".
                   </p>
@@ -274,5 +281,5 @@ export default function TrackApplication() {
         )}
       </div>
     </div>
-  );
+  )
 }
